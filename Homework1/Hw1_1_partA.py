@@ -101,7 +101,7 @@ def structure_tensor(image, window_size, name):
     plt.show()
     return R
 
-# 5. Non-maximun supression follow the alg 
+# Non-maximal Suppression
 def nms(image, window_size, threshold, R, name):
     image = cv2.imread(image) 
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
