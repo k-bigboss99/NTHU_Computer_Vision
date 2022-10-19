@@ -186,16 +186,16 @@ if __name__ == '__main__':
     
     image1 = "1a_notredame.jpg"
     image2 = "chessboard-hw1.jpg"
-    image_rs1 = rotate_and_scale(image1, 0.5, 30, name='A')
-    image_rs2 = rotate_and_scale(image2, 0.5, 30, name='B')
+    image_rs1 = rotate_and_scale(image1, 0.5, 30, name='A_rs')
+    image_rs2 = rotate_and_scale(image2, 0.5, 30, name='B_rs')
 
 
 
-    R1 = structure_tensor(image_rs1, window_size=3, name='A')
-    R2 = structure_tensor(image_rs2, window_size=3, name='B')
+    R1 = structure_tensor(image_rs1, window_size=3, name='A_rs')
+    R2 = structure_tensor(image_rs2, window_size=3, name='B_rs')
 
-    nms(image_rs1, window_size=5, threshold=100, R=R1, name='A')
-    nms(image_rs2, window_size=3, threshold=100, R=R2, name='B')
+    nms(image_rs1, window_size=5, threshold=100, R=R1, name='A_rs')
+    nms(image_rs2, window_size=3, threshold=100, R=R2, name='B_rs')
 
     # gaussian_smooth(image1, kernel=5, sigma=5, name='A')
     # gaussian_smooth(image1, kernel=10, sigma=5, name='A')
