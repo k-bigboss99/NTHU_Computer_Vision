@@ -386,7 +386,7 @@ if __name__ == '__main__':
     keypoints = data['keypt'][0]
     descriptors = data['sift_desc'][0]
 
-    print(obj_bbox) 
+    
     np.random.seed(0)
 
     # for i in [2, 1, 3, 4]:
@@ -402,11 +402,12 @@ if __name__ == '__main__':
     img = cv2.imread(image, cv2.IMREAD_GRAYSCALE)
     img1 = cv2.imread(image1, cv2.IMREAD_GRAYSCALE)
 
+    print(len(keypoints[0])) 
     # SIFT interest point detection
-    sift = cv2.xfeatures2d.SIFT_create()
-    # keypoints, descriptors = sift.detectAndCompute(img, None)
+    sift = cv2.SIFT_create()
+    keypoints, descriptors = sift.detectAndCompute(img, None)
     keypoints1, descriptors1 = sift.detectAndCompute(img1, None)
+    print(len(keypoints))
 
-    print(keypoints[0])
-    match_object(img, descriptors, keypoints, img1, descriptors1, keypoints1, obj_bbox)
-# 
+    
+    # match_object(img, descriptors, keypoints, img1, descriptors1, keypoints1, obj_bbox)
