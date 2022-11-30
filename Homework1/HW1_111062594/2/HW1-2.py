@@ -4,7 +4,7 @@ import numpy as np
 # SIFT interest point detection and matching
 def sift_detection_and_matching(image1, image2, point):
 
-    img1= cv2.imread(image1, cv2.IMREAD_GRAYSCALE)
+    img1 = cv2.imread(image1, cv2.IMREAD_GRAYSCALE)
     img2 = cv2.imread(image2, cv2.IMREAD_GRAYSCALE)
 
     # SIFT interest point detection
