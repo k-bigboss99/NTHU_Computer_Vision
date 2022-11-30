@@ -7,6 +7,7 @@ import math
 from collections import defaultdict
 import matplotlib
 
+import cv2
 
 '''
 SELECT_KEYPOINTS_IN_BBOX: Return only the keypoints and corresponding 
@@ -381,19 +382,31 @@ if __name__ == '__main__':
 
     data = sio.loadmat('SIFT_data.mat')
     images = data['stopim'][0]
-    # obj_bbox = data['obj_bbox'][0]
-    # print(obj_bbox)
-    # keypoints = data['keypt'][0]
-    # descriptors = data['sift_desc'][0]
-    
+    obj_bbox = data['obj_bbox'][0]
+    keypoints = data['keypt'][0]
+    descriptors = data['sift_desc'][0]
 
+    print(obj_bbox) 
     np.random.seed(0)
 
     # for i in [2, 1, 3, 4]:
     #     match_object(images[0], descriptors[0], keypoints[0], images[i],
     #         descriptors[i], keypoints[i], obj_bbox)
 
+    image = "1-image.jpg"
+    image1 = "1-book1.jpg"
+    image2 = "1-book2.jpg"
+    image3 = "1-book3.jpg"
 
 
-    
-    # match_object(images[0], descriptors[0], keypoints[0], images[i], descriptors[i], keypoints[i], obj_bbox)
+    img = cv2.imread(image, cv2.IMREAD_GRAYSCALE)
+    img1 = cv2.imread(image1, cv2.IMREAD_GRAYSCALE)
+
+    # SIFT interest point detection
+    sift = cv2.xfeatures2d.SIFT_create()
+    # keypoints, descriptors = sift.detectAndCompute(img, None)
+    keypoints1, descriptors1 = sift.detectAndCompute(img1, None)
+
+    print(keypoints[0])
+    match_object(img, descriptors, keypoints, img1, descriptors1, keypoints1, obj_bbox)
+# 
