@@ -279,6 +279,8 @@ def get_object_region(keypoints1, keypoints2, matches, obj_bbox, thresh = 5,
     bbox[2:] = obj_bbox[2:] - obj_bbox[:2]
     
     # predicted bbox
+    print(kp2_match[:,2])
+    print(kp1_match[:,2])
     scale_ratio = kp2_match[:,2] / kp1_match[:,2]
     w2 = bbox[2] * scale_ratio
     h2 = bbox[3] * scale_ratio
@@ -372,8 +374,7 @@ def match_object(im1, descriptors1, keypoints1, im2, descriptors2, keypoints2,
     plot_matches(im1, im2, keypoints1, keypoints2, matches[inliers,:])
 
     # Part C
-    cx, cy, w, h, orient = get_object_region(keypoints1, keypoints2,
-        matches[inliers,:], obj_bbox)
+    cx, cy, w, h, orient = get_object_region(keypoints1, keypoints2, matches[inliers,:], obj_bbox)
     #plot_bbox([10,30], [20,50], [50,10], [100,30], [30,90], im2)
     plot_bbox(cx, cy, w, h, orient, im2)
 
@@ -385,8 +386,7 @@ if __name__ == '__main__':
     obj_bbox = data['obj_bbox'][0]
     keypoints = data['keypt'][0]
     descriptors = data['sift_desc'][0]
-    print(len(keypoints[0]))
-    print(len(descriptors[0]))
+    print(obj_bbox)
    
     np.random.seed(0)
 
@@ -400,10 +400,11 @@ if __name__ == '__main__':
     image3 = "1-book3.jpg"
 
 
-    img = cv2.imread(image, cv2.IMREAD_GRAYSCALE)
-    img1 = cv2.imread(image1, cv2.IMREAD_GRAYSCALE)
+    img = cv2.imread(image)
+    img1 = cv2.imread(image1)
+    img2 =  cv2.imread(image2)
 
-    print(len(keypoints[0])) 
+
     # SIFT interest point detection
     sift = cv2.SIFT_create()
     keypoints, descriptors = sift.detectAndCompute(img, None)
@@ -413,8 +414,21 @@ if __name__ == '__main__':
     for i in range(len(keypoints)):
         keypointsList.append(keypoints[i].pt)
     
-    keypointsList = np.array(keypointsList)
-    print(type(keypointsList))
-    print(type(descriptors))
 
-    match_object(img, descriptors, keypointsList, img1, descriptors1, keypoints1, obj_bbox)
+    keypointsList = np.array(keypointsList)
+
+    keypointsList1 = []
+    for i in range(len(keypoints1)):
+        keypointsList1.append(keypoints1[i].pt)
+    
+
+    keypointsList1 = np.array(keypointsList1)
+
+    print(img.shape)
+    obj_bbox[0] = 0
+    obj_bbox[1] = 0
+    obj_bbox[2] = 457
+    obj_bbox[3] = 608
+    print(obj_bbox)
+    match_object(img1, descriptors1, keypointsList1, img, descriptors, keypointsList, obj_bbox)
+
