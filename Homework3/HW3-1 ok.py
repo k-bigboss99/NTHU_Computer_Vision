@@ -139,12 +139,13 @@ def ransac_homography_transformationgraphy(image1, image2, obj_bbox, num_iterati
         
         # homography
         for i in range(sample_length):
-            idx = 2 * i
 
-            A[idx,3:6]  = -pts[i]
-            A[idx,6:]   = pts[i] * pts_prime[i,1]
-            A[idx+1,:3] = pts[i]
-            A[idx+1,6:] = -pts[i] * pts_prime[i,0]
+
+            A[i*2,3:6]  = -pts[i]
+            A[i*2,6:]   = pts[i] * pts_prime[i,1]
+            A[i*2+1,:3] = pts[i]
+            A[i*2+1,6:] = -pts[i] * pts_prime[i,0]
+
         
         u,s,vh = np.linalg.svd(A)
         H = vh[-1].reshape(3,3)
@@ -171,35 +172,39 @@ def ransac_homography_transformationgraphy(image1, image2, obj_bbox, num_iterati
 
     for m in matches:
         ind1, ind2 = m
-        plt.plot([kpArray1[ind1,0], img1.shape[1]+kpArray2[ind2,0]], [kpArray1[ind1,1], kpArray2[ind2,1]],  color='lime')
+        plt.plot([kpArray1[ind1,0], img1.shape[1]+kpArray2[ind2,0]], [kpArray1[ind1,1], kpArray2[ind2,1]],  color='lime', linewidth=1.0)
     plt.savefig('plot.png') 
     plt.show()
        
     # return inliers, H_best
 
-def comput_obj_bbox(image):
+def comput_obj_bbox(image, points):
 
     image = cv2.imread(image)
-    obj_bbox1 = [36, 250, 313,455]
-    obj_bbox2 = [216, 195, 506, 448]
-    obj_bbox3 = [134, 13, 277, 207]
 
-    # min_x1, min_y1, max_x1, max_y1 = obj_bbox1
-    # min_x2, min_y2, max_x2, max_y2 = obj_bbox2
-    # min_x3, min_y3, max_x3, max_y3 = obj_bbox3
-    points1 = [[150,249], [315,372], [243, 454], [140, 455], [37, 356]]
-    print(points1[0][0])
+    img = image.copy()
 
 
+    x = []; y = []
+    for i in range(len(points)):
+        x.append(points[i, 0])
+        y.append(points[i, 1])
+    
+    x_min = min(x); x_max = max(x)
+    y_min = min(y); y_max = max(y)
+
+    obj_bbox = [x_min, y_min, x_max, y_max]
+
+    cv2.polylines(img,[points],True,(0,255,0),2)
 
 
-    pts1 = np.array([[150,249], [315,372], [243, 454], [140, 455], [37, 356]])   # 產生座標陣列
-    cv2.polylines(image,[pts1],True,(0,0,255),1)   # 繪製多邊形
-    cv2.imshow('oxxostudio', image)
+
+    cv2.imwrite("img.jpg" , img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-    return obj_bbox1, obj_bbox2, obj_bbox3
+    name = "img.jpg"
+    return name, obj_bbox 
 
 if __name__ == '__main__': 
     
@@ -208,19 +213,27 @@ if __name__ == '__main__':
     image2 = "1-book2.jpg"
     image3 = "1-book3.jpg"
 
-    obj_bbox = comput_obj_bbox(image)
+    
 
 
 
+    pts1 = np.array([[146,247], [321,361], [248, 456], [138, 455], [34, 357]])
+    pts2 = np.array([[387,197], [510, 312], [334, 455], [219, 302]])
+    pts3 = np.array([[134,34], [266,13], [277, 186], [163, 206]])
 
 
     sift_detection_and_matching(image1, image, point=1000, threshold=0.6)
     sift_detection_and_matching(image2, image, point=1000, threshold=0.4)
     sift_detection_and_matching(image3, image, point=1000, threshold=0.8)
 
-    ransac_homography_transformationgraphy(image1, image, obj_bbox[0], num_iterations = 1000, threshold = 0.6)
-    ransac_homography_transformationgraphy(image2, image, obj_bbox[1], num_iterations = 1000, threshold = 0.4)
-    ransac_homography_transformationgraphy(image3, image, obj_bbox[2], num_iterations = 1000, threshold = 0.8)
+    img1, obj_bbox1 = comput_obj_bbox(image, pts1)
+    ransac_homography_transformationgraphy(image1, img1, obj_bbox1, num_iterations = 1000, threshold = 0.6)
+
+    img2, obj_bbox2 = comput_obj_bbox(image, pts2)
+    ransac_homography_transformationgraphy(image2, img2, obj_bbox2, num_iterations = 1000, threshold = 0.4)
+
+    img3, obj_bbox3 = comput_obj_bbox(image, pts3)
+    ransac_homography_transformationgraphy(image3, img3, obj_bbox3, num_iterations = 1000, threshold = 0.8)
 
 
     
