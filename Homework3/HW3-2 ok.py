@@ -24,18 +24,26 @@ def kmeans_segmentation(img, pixels, K_clusters, times):
     new_center_clusters = np.zeros_like(center_clusters)
 
     count = 0
-    while(times):
+    while True:
+
         for i in range(pixels.shape[0]):
             # pixel_clusters (each pixel belongs to cluster i) : shortest distances
-            idx = np.argsort(np.linalg.norm(pixels[i] - center_clusters,axis=1))
+            idx = np.argsort(np.linalg.norm(pixels[i] - center_clusters,axis=1)) #new_center_clusters
             pixel_clusters[i] = idx[0]
+
 
         for j in range(K_clusters):
             # update K center_clusters value : comput all pixel in cluster i, and get means.
             clusters_class = np.where(pixel_clusters == j)[0]
-            new_center_clusters[j] = np.sum(pixels[clusters_class], axis=0) / clusters_class.shape[0]
+            new_center_clusters[j] = np.sum(pixels[clusters_class],axis=0)/clusters_class.shape[0] #算means 也可以用means
 
-        return pixel_clusters.reshape(height, weight)
+        if (np.allclose(new_center_clusters,center_clusters) or (count >= times)):
+            return pixel_clusters.reshape(height, weight)
+
+        else:
+            center_clusters = new_center_clusters.copy()
+            count+=1
+
 
 
 def kmeans_plusplus_segmentation(img, pixels, K_clusters, times):
@@ -71,7 +79,7 @@ def kmeans_plusplus_segmentation(img, pixels, K_clusters, times):
     new_center_clusters = np.zeros_like(center_clusters)
 
 
-    while(times):
+    while True:
         i = 0; j = 0
         for i in range(pixels.shape[0]):
             # pixel_clusters (each pixel belongs to cluster i) : shortest distances
@@ -83,7 +91,13 @@ def kmeans_plusplus_segmentation(img, pixels, K_clusters, times):
             clusters_class = np.where(pixel_clusters == j)[0]
             new_center_clusters[j] = np.sum(pixels[clusters_class], axis=0) / clusters_class.shape[0]
 
-        return pixel_clusters.reshape(height, weight)
+        if (np.allclose(new_center_clusters,center_clusters) or (count >= times)):
+            return pixel_clusters.reshape(height, weight)
+
+        else:
+            center_clusters = new_center_clusters.copy()
+            count+=1
+
 
 
 def draw_clusters_on_image(img, pixel_clusters):
