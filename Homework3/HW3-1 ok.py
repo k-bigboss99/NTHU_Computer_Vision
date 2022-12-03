@@ -44,7 +44,7 @@ def sift_detection_and_matching(image1, image2, point, threshold):
                         flags = 0)
     
     matching = cv2.drawMatches(img1, kp1, img2, kp2, matches[:point], None,**draw_params)
-    cv2.imwrite("sift-%s.jpg" %(image1), matching)
+    cv2.imwrite("sift-%s" %(image1), matching)
 
 
 def select_keypoints_in_bbox(descriptors, keypoints, bbox):
@@ -173,7 +173,7 @@ def ransac_homography_transformationgraphy(image1, image2, obj_bbox, num_iterati
     for m in matches:
         ind1, ind2 = m
         plt.plot([kpArray1[ind1,0], img1.shape[1]+kpArray2[ind2,0]], [kpArray1[ind1,1], kpArray2[ind2,1]],  color='lime', linewidth=1.0)
-    plt.savefig('ransac-%s.jpg' %(image1)) 
+    plt.savefig('ransac-%s' %(image1)) 
 
        
     # return inliers, H_best
