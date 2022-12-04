@@ -6,9 +6,9 @@ import matplotlib.pyplot as plt
 from matplotlib import colors
 
 
-def kmeans_segmentation(img, pixels, K_clusters, times):
+def k_means_segmentation(img, pixels, K_clusters, times):
 
-    #initialization
+    # initialization
     height = img.shape[0]
     weight = img.shape[1]
 
@@ -24,30 +24,23 @@ def kmeans_segmentation(img, pixels, K_clusters, times):
     new_center_clusters = np.zeros_like(center_clusters)
 
     count = 0
-    while True:
+    while (times):
 
         for i in range(pixels.shape[0]):
             # pixel_clusters (each pixel belongs to cluster i) : shortest distances
-            idx = np.argsort(np.linalg.norm(pixels[i] - center_clusters,axis=1)) #new_center_clusters
+            idx = np.argsort(np.linalg.norm(pixels[i] - center_clusters,axis=1))
             pixel_clusters[i] = idx[0]
-
 
         for j in range(K_clusters):
             # update K center_clusters value : comput all pixel in cluster i, and get means.
             clusters_class = np.where(pixel_clusters == j)[0]
-            new_center_clusters[j] = np.sum(pixels[clusters_class],axis=0)/clusters_class.shape[0] #算means 也可以用means
+            new_center_clusters[j] = np.sum(pixels[clusters_class], axis=0) / clusters_class.shape[0]
 
-        if (np.allclose(new_center_clusters,center_clusters) or (count >= times)):
-            return pixel_clusters.reshape(height, weight)
+        times -= 1
+        return pixel_clusters.reshape(height, weight)
 
-        else:
-            center_clusters = new_center_clusters.copy()
-            count+=1
-
-
-
-def kmeans_plusplus_segmentation(img, pixels, K_clusters, times):
-    #initialization
+def k_means_plus_segmentation(img, pixels, K_clusters, times):
+    # initialization
     height = img.shape[0]
     weight = img.shape[1]
 
@@ -60,14 +53,11 @@ def kmeans_plusplus_segmentation(img, pixels, K_clusters, times):
     center_clusters = pixels[idx_random]
 
     # choose the next center_clusters 
-    i = 0; j = 0
     for j in range(K_clusters-1):
         distanceList = []
         for i in range(pixels.shape[0]):
             # pixel_clusters (each pixel belongs to cluster i) : shortest distances
-            idx = np.argsort(np.linalg.norm(pixels[i] - center_clusters,axis=1))
             distance = sum(np.linalg.norm(pixels[i] - center_clusters,axis=1))
-            
             distanceList.append(distance)
 
         max_distance = max(distanceList)
@@ -78,9 +68,8 @@ def kmeans_plusplus_segmentation(img, pixels, K_clusters, times):
     # update K center_clusters value
     new_center_clusters = np.zeros_like(center_clusters)
 
+    while (times):
 
-    while True:
-        i = 0; j = 0
         for i in range(pixels.shape[0]):
             # pixel_clusters (each pixel belongs to cluster i) : shortest distances
             idx = np.argsort(np.linalg.norm(pixels[i] - center_clusters,axis=1))
@@ -91,14 +80,76 @@ def kmeans_plusplus_segmentation(img, pixels, K_clusters, times):
             clusters_class = np.where(pixel_clusters == j)[0]
             new_center_clusters[j] = np.sum(pixels[clusters_class], axis=0) / clusters_class.shape[0]
 
-        if (np.allclose(new_center_clusters,center_clusters) or (count >= times)):
-            return pixel_clusters.reshape(height, weight)
+        times -= 1
+        return pixel_clusters.reshape(height, weight)
 
+def computing_convergence_times(img, pixels, K_clusters):
+
+    height = img.shape[0]
+    weight = img.shape[1]
+
+    pixel_clusters1 = np.zeros((height * weight), dtype=int)
+    pixel_clusters2 = np.zeros((height * weight), dtype=int)
+
+    M  = pixels.shape[0]
+     
+    idx_random1 = np.random.choice(M, 5, replace=False)
+    idx_random2 = np.random.choice(M, 1, replace=False) 
+
+    center_clusters1 = pixels[idx_random1]
+    center_clusters2 = pixels[idx_random1]
+
+    for j in range(K_clusters-1):
+        distanceList = []
+        for i in range(pixels.shape[0]):
+
+            distance = sum(np.linalg.norm(pixels[i] - center_clusters2,axis=1))
+            distanceList.append(distance)
+
+        max_distance = max(distanceList)
+        idx_random2 = np.append(idx_random2, distanceList.index(max_distance))
+        center_clusters2 = pixels[idx_random2]
+
+
+    new_center_clusters1 = np.zeros_like(center_clusters1)
+    new_center_clusters2 = np.zeros_like(center_clusters2)
+
+
+    count1 = 0; count2 = 0
+    while True:
+
+        for i in range(pixels.shape[0]):
+
+            idx1 = np.argsort(np.linalg.norm(pixels[i] - center_clusters1,axis=1))
+            idx2 = np.argsort(np.linalg.norm(pixels[i] - center_clusters2,axis=1))
+
+            pixel_clusters1[i] = idx1[0]
+            pixel_clusters2[i] = idx2[0]
+
+        for j in range(K_clusters):
+
+            clusters_class1 = np.where(pixel_clusters1 == j)[0]
+            clusters_class2 = np.where(pixel_clusters2 == j)[0]
+            
+            new_center_clusters1[j] = np.sum(pixels[clusters_class1], axis=0) / clusters_class1.shape[0]
+            new_center_clusters2[j] = np.sum(pixels[clusters_class2], axis=0) / clusters_class2.shape[0]
+
+        
+        if (np.allclose(new_center_clusters1,center_clusters1) and np.allclose(new_center_clusters2,center_clusters2)):
+            
+            print("K-means convergencetimes : " + str(count1))
+            print("K-means-plus convergencetimes : " + str(count2))
+
+            return 
+        
         else:
-            center_clusters = new_center_clusters.copy()
-            count+=1
-
-
+            if (not(np.allclose(new_center_clusters1,center_clusters1))):
+                center_clusters1 = new_center_clusters1.copy()
+                count1 += 1
+            
+            if (not(np.allclose(new_center_clusters2,center_clusters2))):
+                center_clusters2 = new_center_clusters2.copy()
+                count2 += 1
 
 def draw_clusters_on_image(img, pixel_clusters):
     
@@ -110,120 +161,101 @@ def draw_clusters_on_image(img, pixel_clusters):
 
     for i in range(img.shape[0]):
         for j in range(img.shape[1]):
-            c = pixel_clusters[i,j]
-            cluster_count[c] += 1
+            p = pixel_clusters[i,j]
+            cluster_count[p] += 1
+            average_color[p, :] += img[i, j, :]
 
-            average_color[c, :] += img[i, j, :]
+    for p in range(K_clusters):
+        average_color[p,:] /= float(cluster_count[p])
 
-    for c in range(K_clusters):
-        average_color[c,:] /= float(cluster_count[c])
-
-    out_im = np.zeros_like(img)
+    result_img = np.zeros_like(img)
     for i in range(img.shape[0]):
         for j in range(img.shape[1]):
-            c = pixel_clusters[i,j]
-            out_im[i,j,:] = average_color[c,:]
+            p = pixel_clusters[i,j]
+            result_img[i,j,:] = average_color[p,:]
 
-    return out_im
+    return result_img
 
 def meanshift_segmentation(img, pixels, bandwidth):
     
-    #initialization
-    height,weight,_ = img.shape
-    record = np.ones([height*weight],dtype=int)
+    # initialization
+    height = img.shape[0]
+    weight = img.shape[1]
 
-    cluster_means = np.empty((0,pixels.shape[1]))
+    # pixel_clusters (each pixel belongs to cluster i)
+    pixel_clusters = np.zeros(pixels.shape[0], dtype=int)
 
-    pixel_clusters = np.zeros(pixels.shape[0],dtype=int)
-    
-    idx_rand_no_seen_record = []
-    idx_i = 0
-    timer=0
+    # record_pixels (record_pixels selected and unselected pixels)
+    record_pixels = np.ones([height * weight], dtype=int)
 
-    while np.sum(record) > 0:
+    cluster_means = np.empty((0, pixels.shape[1]))
+
+    # if there are still unselected pixels
+    while (np.sum(record_pixels) > 0):
         
-        # randomly choose one feature from haven't seen
-        idx = np.where(record > 0)[0]
-        # print(idx)
-        idx_rand_no_seen = idx[np.random.choice(idx.shape[0], 1)]
+        # randomly choose a pixel (unselected pixel)
+        idx = np.where(record_pixels > 0)[0]
+        idx_unselected = idx[np.random.choice(idx.shape[0], 1)]
+        cluster_mean = pixels[idx_unselected].flatten()
 
-        # print(idx_rand_no_seen) # 找一些點大概不到 50點 就可以收斂
+        # determine whether it is within the bandwidth range
+        is_within = True
 
-        mean = pixels[idx_rand_no_seen].flatten()# flatten() 少一維度 
-        # print(mean) 
-        flag = True
-        
-        # mean shift
-        while flag:
-            dis = np.linalg.norm(pixels - mean,axis=1)
-            idx_within = np.where(dis < bandwidth)[0] # 返回 index
+        while(is_within):
 
-            # import pdb;pdb.set_trace()
-            new_mean = np.sum(pixels[idx_within],axis=0) / idx_within.shape[0]
-        #     If the output mean vector from the mean shift step is
-        #       sufficiently close (within half a bandwidth) to another cluster
-        #       center, say it's part of that cluster
-            if np.linalg.norm(new_mean-mean) < bandwidth:  #norm 相減 平方 sum 再開根號
-                flag = False
-                # idx_i+=1
-                # print(timer)
-                # timer+=1
+            distance = np.linalg.norm(pixels - cluster_mean, axis=1)
+            idx_within = np.where(distance < bandwidth)[0]
+
+            # update K center_clusters value
+            new_cluster_mean = np.sum(pixels[idx_within], axis=0) / idx_within.shape[0]
+
+            if np.linalg.norm(new_cluster_mean - cluster_mean) < bandwidth:  #norm 相減 平方 sum 再開根號
+                is_within = False
+
             else:
-                # If it's not sufficiently close to any other cluster center, make a new cluster
-                mean = new_mean.copy()
-                # print("bad")
-            record[idx_within] = 0
+                cluster_mean = new_cluster_mean.copy()
+
+            # record the selected pixels as 0
+            record_pixels[idx_within] = 0
             
-        mean_dis = np.linalg.norm(cluster_means - new_mean,axis=1)
+        mean_distance = np.linalg.norm(cluster_means - new_cluster_mean,axis=1)
 
-        # 每一個 cluster_means 隨著找到的 idx_rand_no_seen 的點 當成 cluster 的 中心算 mean 
-        # print(mean_dis)
 
-        """
-        把 height 範圍內 點都統一 ,且算完的值 給 mean_dis
-        取 最小 mean_dis[0] ,找真正有用的cluster
-        """
-        if mean_dis.size > 0 and mean_dis[np.argsort(mean_dis)[0]] < bandwidth / 2:
-            # pixel_clusters[idx_within] = mean_dis[np.argsort(mean_dis)[0]] # 是給 index
-            pixel_clusters[idx_within] = np.argsort(mean_dis)[0]
-            # print(pixel_clusters[idx_within])
-            # print(np.argsort(mean_dis)[0])
-            # print(timer)# 3次
-            # timer+=1
+        if mean_distance.size > 0 and mean_distance[np.argsort(mean_distance)[0]] < bandwidth / 2:
+            pixel_clusters[idx_within] = np.argsort(mean_distance)[0]
+
         else:
-            cluster_means = np.vstack((cluster_means,new_mean)) # 矩陣矩陣堆疊 直方向 
-            # print(timer)# 29次
-            # timer+=1
-
-            # idx_within 的值 = 總共數量的值 ,全部該次的idx_within 都同個id 然後給 plot 再算idx_within 全部的平均
+            cluster_means = np.vstack((cluster_means,new_cluster_mean))
             pixel_clusters[idx_within] = cluster_means.shape[0] 
-    # print(cluster_means.shape[0])
-    # print(idx_rand_no_seen_record)
-    
-    return pixel_clusters.reshape(height,weight)
+
+    return pixel_clusters.reshape(height, weight)
    
-def show_rgbspace(img):
+def uniform_kernel_rgbspace(img, image):
     r, g, b = cv2.split(img)
     fig = plt.figure()
     axis = fig.add_subplot(1, 1, 1, projection="3d")
+
     pixel_colors = img.reshape((np.shape(img)[0]*np.shape(img)[1], 3))
     norm = colors.Normalize(vmin=-1.,vmax=1.)
     norm.autoscale(pixel_colors)
+
     pixel_colors = norm(pixel_colors).tolist()
     axis.scatter(r.flatten(), g.flatten(), b.flatten(), facecolors=pixel_colors, marker=".")
+
     axis.set_xlabel("Red")
     axis.set_ylabel("Green")
     axis.set_zlabel("Blue")
-    plt.show()
+
+    plt.savefig('uniform-kernel %s' %(image)) 
 
 if __name__ == '__main__':
 
-    # K_clusters = [5,10,15]
-    K_clusters = [5]
-    # bandwidths = [0.3,0.5,0.6]
-    # bandwidths = [0.3]
+    K_clusters = [5, 7, 9]
+    bandwidths = [0.3, 0.4, 0.5]
 
-    image = '2-image.jpg'
+    # image = '2-image.jpg'
+    image = '2-masterpiece.jpg'
+
     img = imageio.imread(image)
 
     pixels = np.zeros((img.shape[0] * img.shape[1], 5))
@@ -234,41 +266,39 @@ if __name__ == '__main__':
 
     pixels_normalized = pixels / pixels.max(axis = 0)
 
-    # Segmentation using K-Means
-    for nc in K_clusters:
+    # Segmentation using K-Means、K-Means-plus
+    for k in K_clusters:
         
-        K_clustered_pixels = kmeans_segmentation(img, pixels_normalized, nc, times=50)
-        Kplus_clustered_pixels = kmeans_plusplus_segmentation(img, pixels_normalized, nc, times=50)
+        K_clustered_pixels = k_means_segmentation(img, pixels_normalized, k, times=50)
+        Kplus_clustered_pixels = k_means_plus_segmentation(img, pixels_normalized, k, times=50)
         
         K_cluster_img = draw_clusters_on_image(img, K_clustered_pixels)
         Kplus_cluster_img = draw_clusters_on_image(img, Kplus_clustered_pixels)
         
-        imageio.imsave('K-means with %d clusters on %s' % (int(nc), image), K_cluster_img)
-        imageio.imsave('K-means-plus with %d clusters on %s' % (int(nc), image),  Kplus_cluster_img)
+        imageio.imsave('K-means with %d clusters on %s' % (int(k), image), K_cluster_img)
+        imageio.imsave('K-means-plus with %d clusters on %s' % (int(k), image),  Kplus_cluster_img)
+
+        # computing_convergence_times(img, pixels_normalized, k)
+
+    # Segmentation using Meanshift
+    for bandwidth in bandwidths:
+
+        Meanshift_clustered_pixels = meanshift_segmentation(img, pixels_normalized, bandwidth)
+
+        Meanshift_cluster_img = draw_clusters_on_image(img, Meanshift_clustered_pixels)
+
+        imageio.imsave('Meanshift with bandwidth %.2f on %s' % (bandwidth, image), Meanshift_cluster_img)
+
+        
+        # Uniform Kernel on the RGB color space
+        uniform_kernel_rgbspace(img, image)
+
+        image_rgbspace = str('Meanshift with bandwidth %.2f on %s' % (bandwidth, image))
+        img_rgbspace = imageio.imread('Meanshift with bandwidth %.2f on %s' % (bandwidth, image))
+
+        uniform_kernel_rgbspace(img_rgbspace, image_rgbspace)
 
 
-        # # Part II: Segmentation using Meanshift
-        # for bandwidth in bandwidths:
 
-        #     clustered_pixels = meanshift_segmentation(img, pixels_normalized, bandwidth)
-        #     cluster_img = draw_clusters_on_image(img, clustered_pixels)
 
-        #     # for i in range(3):
-        #     imageio.imsave('output/Meanshift_with_bandwidth_%.2f_on_%s.jpg' % (bandwidth,filename),cluster_img)
-        #     plt.imshow(cluster_img)
-        #     plt.title('Meanshift with bandwidth %.2f on %s.jpg' % (bandwidth, filename))
-        #     plt.show()
 
-    # show original
-
-    # for filename in ['2-image', '2-masterpiece']:#, '2-masterpiece'
-    #     print("original: %s.jpg" % filename)
-    #     img_1 = imageio.imread('%s.jpg' % filename)
-    #     show_rgbspace(img_1)
-    #     for bandwidth in bandwidths:
-    #         img = imageio.imread('output/Meanshift_with_bandwidth_%.2f_on_%s.jpg' % (bandwidth,filename))
-            
-
-            
-    #         print('Meanshift with bandwidth %.2f on %s.jpg' % (bandwidth, filename))
-    #         show_rgbspace(img)
