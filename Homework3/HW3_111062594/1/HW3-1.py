@@ -22,7 +22,7 @@ def sift_detection_and_matching(image1, image2, point, threshold):
             dis = des2-des1[i,:]
             dis = np.linalg.norm(dis, axis=1)
             arrange = np.argsort(dis).tolist()
-            if dis[arrange[0]]/dis[arrange[1]] <= threshold:
+            if dis[arrange[0]] / dis[arrange[1]] <= threshold:
                 match1.append((i,arrange[0]))
 
     match2=[]
@@ -31,7 +31,7 @@ def sift_detection_and_matching(image1, image2, point, threshold):
             dis=des1-des2[i,:]
             dis=np.linalg.norm(dis, axis=1)
             arrange =np.argsort(dis).tolist()
-            if dis[arrange[0]]/dis[arrange[1]] <= threshold:
+            if dis[arrange[0]] / dis[arrange[1]] <= threshold:
                 match2.append((arrange[0],i))
             
     match = list(set(match1).intersection(set(match2)))
@@ -60,7 +60,7 @@ def comput_obj_bbox(image, points):
 
     obj_bbox = [x_min, y_min, x_max, y_max]
 
-    cv2.polylines(img,[points],True,(0,255,0),1)
+    cv2.polylines(img,[points],True,(0,255,0), 2)
     cv2.imwrite("deviation.jpg" , img)
 
     name = "deviation.jpg"
@@ -72,7 +72,7 @@ def select_keypoints_in_bbox(descriptors, keypoints, bbox):
             pt[0] >= xmin and pt[0] <= xmax and pt[1] >= ymin and pt[1] <= ymax]
     return descriptors[indices, :], keypoints[indices, :]
 
-def ransac_homography_transformationgraphy(image1, image2, obj_bbox, num_iterations, threshold):
+def ransac_homography_transformation(image1, image2, obj_bbox, num_iterations, threshold):
 
     img1 = plt.imread(image1)
     img2 = plt.imread(image2)
@@ -91,7 +91,7 @@ def ransac_homography_transformationgraphy(image1, image2, obj_bbox, num_iterati
         kpArray2.append(kp2[i].pt)
     kpArray2 = np.array(kpArray2)
 
-    des2, kpArray2, = select_keypoints_in_bbox(des2, kpArray2, obj_bbox)
+    # des2, kpArray2, = select_keypoints_in_bbox(des2, kpArray2, obj_bbox)
 
     n = des1.shape[0]
     matches = np.empty((0,2), int)
@@ -140,7 +140,7 @@ def ransac_homography_transformationgraphy(image1, image2, obj_bbox, num_iterati
             A[i*2+1,:3] =  x2
             A[i*2+1,6:] = x1 * y1
 
-        U, S, V = np.linalg.svd(A)
+        U, S, V = np.linalg.svd(A, full_matrices=True)
         H = V[-1].reshape(3,3)
 
         reprojection_threshold = 10
@@ -186,13 +186,13 @@ if __name__ == '__main__':
     sift_detection_and_matching(image3, image, point=1000, threshold=0.8)
 
     img1, obj_bbox1 = comput_obj_bbox(image, pts1)
-    ransac_homography_transformationgraphy(image1, img1, obj_bbox1, num_iterations = 1000, threshold = 0.6)
+    ransac_homography_transformation(image1, img1, obj_bbox1, num_iterations = 1000, threshold = 0.6)
 
     img2, obj_bbox2 = comput_obj_bbox(image, pts2)
-    ransac_homography_transformationgraphy(image2, img2, obj_bbox2, num_iterations = 1000, threshold = 0.4)
+    ransac_homography_transformation(image2, img2, obj_bbox2, num_iterations = 1000, threshold = 0.4)
 
     img3, obj_bbox3 = comput_obj_bbox(image, pts3)
-    ransac_homography_transformationgraphy(image3, img3, obj_bbox3, num_iterations = 1000, threshold = 0.8)
+    ransac_homography_transformation(image3, img3, obj_bbox3, num_iterations = 1000, threshold = 0.8)
 
     img1, obj_bbox1 = comput_obj_bbox(image, pts1)
     img2, obj_bbox2 = comput_obj_bbox(img1, pts2)
