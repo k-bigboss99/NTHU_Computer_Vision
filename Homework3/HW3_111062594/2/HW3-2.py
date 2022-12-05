@@ -56,7 +56,6 @@ def k_means_plus_segmentation(img, pixels, K_clusters, times):
     for j in range(K_clusters-1):
         distanceList = []
         for i in range(pixels.shape[0]):
-            # pixel_clusters (each pixel belongs to cluster i) : shortest distances
             distance = sum(np.linalg.norm(pixels[i] - center_clusters,axis=1))
             distanceList.append(distance)
 
@@ -189,10 +188,11 @@ def meanshift_segmentation(img, pixels, bandwidth):
     record_pixels = np.ones([height * weight], dtype=int)
 
     cluster_means = np.empty((0, pixels.shape[1]))
-
+    
+    count = 0
     # if there are still unselected pixels
     while (np.sum(record_pixels) > 0):
-        
+        count += 1
         # randomly choose a pixel (unselected pixel)
         idx = np.where(record_pixels > 0)[0]
         idx_unselected = idx[np.random.choice(idx.shape[0], 1)]
@@ -228,6 +228,7 @@ def meanshift_segmentation(img, pixels, bandwidth):
             cluster_means = np.vstack((cluster_means,new_cluster_mean))
             pixel_clusters[idx_within] = cluster_means.shape[0] 
 
+    print("Mean-shift convergencetimes : " + str(count))
     return pixel_clusters.reshape(height, weight)
    
 def uniform_kernel_rgbspace(img, image):
@@ -253,8 +254,8 @@ if __name__ == '__main__':
     K_clusters = [5, 7, 9]
     bandwidths = [0.3, 0.4, 0.5]
 
-    # image = '2-image.jpg'
-    image = '2-masterpiece.jpg'
+    image = '2-image.jpg'
+    # image = '2-masterpiece.jpg'
 
     img = imageio.imread(image)
 

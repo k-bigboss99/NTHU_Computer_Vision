@@ -22,7 +22,7 @@ from matplotlib import colors
             - sift-1-book2.jpg
             - sift-1-book3.jpg
     - RANSAC(Apply the RANSAC program to find the best matching homography transformation between each single-book image and the input image)
-        - def ransac_homography_transformation(image1, image2, obj_bbox, num_iterations, threshold)
+        - def ransac_homography_transformationgraphy(image1, image2, obj_bbox, num_iterations, threshold)
             - ransac-1-book1.jpg
             - ransac-1-book2.jpg
             - ransac-1-book3.jpg
